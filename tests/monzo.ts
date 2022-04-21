@@ -1,9 +1,10 @@
 import {test} from 'uvu';
-import MonzoAPI from '../src/monzo';
+import {MonzoOAuthAPI} from '../src';
 import * as assert from 'uvu/assert';
 
-const monzo = new MonzoAPI({
+const monzo = new MonzoOAuthAPI({
 	client_id: 'id',
+	client_secret: 'secret',
 	redirect_uri: 'https://example.com/oauth',
 });
 

@@ -2,7 +2,7 @@ import axios from 'axios';
 import Pika from 'pika-id';
 import urlcat from 'urlcat';
 import {Config, Configable} from './configable';
-import {UserCredentials} from './credentials';
+import {AppCredentials, UserCredentials} from './credentials';
 import {MonzoAPI} from './monzo';
 
 export class MonzoOAuthAPI extends Configable {
@@ -15,7 +15,7 @@ export class MonzoOAuthAPI extends Configable {
 		},
 	]);
 
-	constructor(credentials: UserCredentials, config?: Partial<Config>) {
+	constructor(credentials: AppCredentials, config?: Partial<Config>) {
 		super(config);
 		this.credentials = credentials;
 	}

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import Pika from 'pika-id';
 import urlcat from 'urlcat';
 import {Config, Configable} from './configable';
 import {UserCredentials} from './credentials';
@@ -6,6 +7,7 @@ import {Currency, Pagination} from './types';
 
 export class MonzoAPI extends Configable {
 	public readonly credentials;
+	public readonly pika = new Pika(['dedupe_id']);
 
 	constructor(credentials: UserCredentials, config?: Partial<Config>) {
 		super(config);
@@ -20,7 +22,6 @@ export class MonzoAPI extends Configable {
 
 	async logout() {
 		const url = urlcat(this.config.base, '/ping/logout');
-
 		await axios.post(url, undefined, {headers: this.headers});
 	}
 
@@ -101,5 +102,42 @@ export class MonzoAPI extends Configable {
 		}>(url, {headers: this.headers});
 
 		return data.pots;
+	}
+
+	async depositIntoPot({
+		pot: id,
+		dedupe_id = this.pika.gen('dedupe_id'),
+		...rest
+	}: {
+		pot: string;
+		source_account_id: string;
+		amount: number;
+		dedupe_id?: string;
+	}) {
+		const url = urlcat(this.config.base, '/pots/:id/deposit', {
+			id,
+		});
+
+		const {data} = await axios.post<{
+			id: string;
+			name: string;
+			style: string;
+			balance: number;
+			currency: string;
+			created: string;
+			updated: string;
+			deleted: boolean;
+		}>(
+			url,
+			{
+				dedupe_id,
+				...rest,
+			},
+			{
+				headers: this.headers,
+			}
+		);
+
+		return data;
 	}
 }

@@ -1,10 +1,13 @@
 {
 	"name": "@otters/monzo",
 	"description": "Monzo API wrapper",
-	"version": "1.0.0",
+	"version": "0.0.2",
 	"types": "./dist/index.d.ts",
 	"main": "./dist/index.js",
 	"module": "./dist/index.mjs",
+	"publishConfig": {
+		"access": "public"
+	},
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/otters/monzo"
@@ -19,7 +22,8 @@
 		"build": "tsup src/index.ts --dts --format esm,cjs",
 		"lint": "eslint ./src/**/*.ts",
 		"fix": "eslint ./src/**/*.ts --fix",
-		"test": "uvu -r tsm"
+		"test": "uvu -r tsm",
+		"release": "yarn test && yarn build && yarn npm publish"
 	},
 	"bugs": {
 		"url": "https://github.com/otters/monzo/issues"
