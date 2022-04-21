@@ -28,12 +28,15 @@ export class MonzoAPI extends Configable {
 	async refresh() {
 		const url = urlcat(this.config.base, '/oauth2/token');
 
-		const {data} = await axios.post<UserCredentials>(url, {
-			grant_type: 'refresh_token',
-			client_id: this.credentials.client_id,
-			client_secret: this.credentials.client_secret,
-			refresh_token: this.credentials.refresh_token,
-		});
+		const {data} = await axios.post<UserCredentials>(
+			url,
+			new URLSearchParams({
+				grant_type: 'refresh_token',
+				client_id: this.credentials.client_id,
+				client_secret: this.credentials.client_secret,
+				refresh_token: this.credentials.refresh_token,
+			})
+		);
 
 		return data;
 	}

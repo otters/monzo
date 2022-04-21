@@ -45,13 +45,18 @@ export class MonzoOAuthAPI extends Configable {
 	async exchangeAuthorizationCode(code: string) {
 		const url = urlcat(this.config.base, '/oauth2/token');
 
-		const {data} = await axios.post<UserCredentials>(url, {
-			grant_type: 'authorization_code',
-			client_id: this.credentials.client_id,
-			client_secret: this.credentials.client_secret,
-			redirect_uri: this.credentials.redirect_uri,
-			code,
-		});
+		console.log('bruh');
+
+		const {data} = await axios.post<UserCredentials>(
+			url,
+			new URLSearchParams({
+				grant_type: 'authorization_code',
+				client_id: this.credentials.client_id,
+				client_secret: this.credentials.client_secret,
+				redirect_uri: this.credentials.redirect_uri,
+				code,
+			})
+		);
 
 		return new MonzoAPI({
 			...this.credentials,
