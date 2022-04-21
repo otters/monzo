@@ -2,7 +2,7 @@ import axios from 'axios';
 import urlcat from 'urlcat';
 import {Config, Configable} from './configable';
 import {UserCredentials} from './credentials';
-import {Currency, Id, Pagination} from './types';
+import {Currency, Pagination} from './types';
 
 export class MonzoAPI extends Configable {
 	public readonly credentials;
