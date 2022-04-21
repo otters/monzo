@@ -1,0 +1,56 @@
+{
+	"name": "@otters/monzo",
+	"description": "Monzo API wrapper",
+	"version": "1.0.0",
+	"types": "./dist/index.d.ts",
+	"main": "./dist/index.js",
+	"module": "./dist/index.mjs",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/otters/monzo"
+	},
+	"author": "Alistair Smith <hi@alistair.sh>",
+	"license": "MIT",
+	"funding": {
+		"type": "github",
+		"url": "https://github.com/sponsors/alii"
+	},
+	"scripts": {
+		"build": "tsup src/index.ts --dts --format esm,cjs",
+		"lint": "eslint ./src/**/*.ts",
+		"fix": "eslint ./src/**/*.ts --fix",
+		"test": "uvu -r tsm"
+	},
+	"bugs": {
+		"url": "https://github.com/otters/monzo/issues"
+	},
+	"homepage": "https://github.com/otters/monzo#readme",
+	"files": [
+		"dist",
+		"package.json"
+	],
+	"keywords": [
+		"monzo",
+		"api",
+		"client",
+		"sdk"
+	],
+	"packageManager": "yarn@3.2.0",
+	"dependencies": {
+		"axios": "^0.26.1",
+		"pika-id": "^1.0.3",
+		"urlcat": "^2.0.4"
+	},
+	"devDependencies": {
+		"@typescript-eslint/eslint-plugin": "^5.20.0",
+		"@typescript-eslint/parser": "^5.20.0",
+		"eslint": "^8.13.0",
+		"eslint-config-xo": "^0.40.0",
+		"eslint-config-xo-typescript": "^0.50.0",
+		"prettier": "^2.6.2",
+		"tsm": "^2.2.1",
+		"tsup": "^5.12.6",
+		"typescript": "^4.6.3",
+		"uvu": "^0.5.3"
+	}
+}
