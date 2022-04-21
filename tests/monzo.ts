@@ -1,5 +1,5 @@
 import {test} from 'uvu';
-import MonzoAPI from '../src/index';
+import MonzoAPI from '../src/monzo';
 import * as assert from 'uvu/assert';
 
 const monzo = new MonzoAPI({
