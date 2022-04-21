@@ -1,7 +1,7 @@
 {
 	"name": "@otters/monzo",
 	"description": "Monzo API wrapper",
-	"version": "0.0.3",
+	"version": "0.0.4",
 	"types": "./dist/index.d.ts",
 	"main": "./dist/index.js",
 	"module": "./dist/index.mjs",

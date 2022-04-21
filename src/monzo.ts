@@ -2,16 +2,20 @@ import axios from 'axios';
 import Pika from 'pika-id';
 import urlcat from 'urlcat';
 import {Config, Configable} from './configable';
-import {UserCredentials} from './credentials';
+import {AppCredentials, UserCredentials} from './credentials';
 import {Currency, Pagination} from './types';
 
 export class MonzoAPI extends Configable {
 	public readonly credentials;
-	public readonly pika = new Pika(['dedupe_id']);
 
-	constructor(credentials: UserCredentials, config?: Partial<Config>) {
+	private readonly app;
+	private readonly pika = new Pika(['dedupe_id']);
+
+	constructor(credentials: UserCredentials, app: AppCredentials, config?: Partial<Config>) {
 		super(config);
+
 		this.credentials = credentials;
+		this.app = app;
 	}
 
 	private get headers() {
@@ -32,8 +36,8 @@ export class MonzoAPI extends Configable {
 			url,
 			new URLSearchParams({
 				grant_type: 'refresh_token',
-				client_id: this.credentials.client_id,
-				client_secret: this.credentials.client_secret,
+				client_id: this.app.client_id,
+				client_secret: this.app.client_secret,
 				refresh_token: this.credentials.refresh_token,
 			})
 		);

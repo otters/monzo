@@ -4,7 +4,7 @@ export interface AppCredentials {
 	redirect_uri: string;
 }
 
-export interface UserCredentials extends AppCredentials {
+export interface UserCredentials {
 	access_token: string;
 	client_id: string;
 	expires_in: 21600;

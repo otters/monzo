@@ -58,9 +58,6 @@ export class MonzoOAuthAPI extends Configable {
 			})
 		);
 
-		return new MonzoAPI({
-			...this.credentials,
-			...data,
-		});
+		return new MonzoAPI(data, this.credentials, this.config);
 	}
 }
