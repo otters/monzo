@@ -52,9 +52,7 @@ export class MonzoAPI extends Configable {
 			authenticated: true;
 			client_id: string;
 			user_id: string;
-		}>(url, {
-			headers: this.headers,
-		});
+		}>(url, {headers: this.headers});
 
 		return data;
 	}
@@ -103,8 +101,12 @@ export class MonzoAPI extends Configable {
 		const {data} = await axios.get<{
 			balance: number;
 			total_balance: number;
+			balance_including_flexible_savings: number;
 			currency: Currency;
 			spend_today: number;
+			local_currency: '' | Currency;
+			local_exchange_rate: number;
+			local_spend: unknown[];
 		}>(url, {headers: this.headers});
 
 		return data;
