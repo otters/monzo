@@ -3,7 +3,7 @@ import Pika from 'pika-id';
 import urlcat from 'urlcat';
 import {Config, Configable} from './configable';
 import {AppCredentials, UserCredentials} from './credentials';
-import {Currency, Pagination} from './types';
+import {Currency} from './types';
 
 export class MonzoAPI extends Configable {
 	public readonly credentials;
@@ -57,12 +57,10 @@ export class MonzoAPI extends Configable {
 		return data;
 	}
 
-	async accounts(
-		params: Pagination & {
-			account_type?: 'uk_retail' | 'uk_retail_joint';
-		} = {}
-	) {
-		const url = urlcat(this.config.base, '/accounts', params);
+	async accounts(account_type?: 'uk_retail' | 'uk_retail_joint') {
+		const url = urlcat(this.config.base, '/accounts', {
+			account_type,
+		});
 
 		const {data} = await axios.get<{
 			accounts: Array<{
@@ -71,7 +69,7 @@ export class MonzoAPI extends Configable {
 				created: string;
 				description: string;
 				type: string;
-				currency: string;
+				currency: Currency;
 				country_code: string;
 				owners: Array<{
 					user_id: string;
@@ -147,17 +145,18 @@ export class MonzoAPI extends Configable {
 	}
 
 	async depositIntoPot({
-		pot: id,
+		pot_id,
 		dedupe_id = this.pika.gen('dedupe_id'),
-		...rest
+		source_account_id,
+		amount,
 	}: {
-		pot: string;
+		pot_id: string;
 		source_account_id: string;
 		amount: number;
 		dedupe_id?: string;
 	}) {
 		const url = urlcat(this.config.base, '/pots/:id/deposit', {
-			id,
+			id: pot_id,
 		});
 
 		const {data} = await axios.post<{
@@ -165,19 +164,18 @@ export class MonzoAPI extends Configable {
 			name: string;
 			style: string;
 			balance: number;
-			currency: string;
+			currency: Currency;
 			created: string;
 			updated: string;
 			deleted: boolean;
 		}>(
 			url,
-			{
+			new URLSearchParams({
 				dedupe_id,
-				...rest,
-			},
-			{
-				headers: this.headers,
-			}
+				source_account_id,
+				amount: amount.toString(),
+			}),
+			{headers: this.headers}
 		);
 
 		return data;
