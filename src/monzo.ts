@@ -92,8 +92,10 @@ export class MonzoAPI extends Configable {
 		return data;
 	}
 
-	async pots(params: Pagination = {}) {
-		const url = urlcat(this.config.base, '/pots', params);
+	async pots(current_account_id: string) {
+		const url = urlcat(this.config.base, '/pots', {
+			current_account_id,
+		});
 
 		const {data} = await axios.get<{
 			pots: Array<{
