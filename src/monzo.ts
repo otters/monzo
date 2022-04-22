@@ -1,5 +1,4 @@
 import axios from 'axios';
-import Pika from 'pika-id';
 import urlcat from 'urlcat';
 import {Config, Configable} from './configable';
 import {AppCredentials, UserCredentials} from './credentials';
@@ -9,7 +8,6 @@ export class MonzoAPI extends Configable {
 	public readonly credentials;
 
 	private readonly app;
-	private readonly pika = new Pika(['dedupe_id']);
 
 	constructor(credentials: UserCredentials, app: AppCredentials, config?: Partial<Config>) {
 		super(config);
@@ -144,20 +142,19 @@ export class MonzoAPI extends Configable {
 		return data.pots;
 	}
 
-	async depositIntoPot({
-		pot_id,
-		dedupe_id = this.pika.gen('dedupe_id'),
-		source_account_id,
-		amount,
-	}: {
-		pot_id: string;
-		source_account_id: string;
-		amount: number;
-		dedupe_id?: string;
-	}) {
-		const url = urlcat(this.config.base, '/pots/:id/deposit', {
-			id: pot_id,
-		});
+	async depositIntoPot(
+		pot: string,
+		{
+			dedupe_id,
+			source_account_id,
+			amount,
+		}: {
+			source_account_id: string;
+			amount: number;
+			dedupe_id: string;
+		}
+	) {
+		const url = urlcat(this.config.base, '/pots/:pot/deposit', {pot});
 
 		const {data} = await axios.post<{
 			id: string;
@@ -173,6 +170,42 @@ export class MonzoAPI extends Configable {
 			new URLSearchParams({
 				dedupe_id,
 				source_account_id,
+				amount: amount.toString(),
+			}),
+			{headers: this.headers}
+		);
+
+		return data;
+	}
+
+	async withdrawFromPot(
+		pot: string,
+		{
+			dedupe_id,
+			destination_account_id,
+			amount,
+		}: {
+			destination_account_id: string;
+			amount: number;
+			dedupe_id: string;
+		}
+	) {
+		const url = urlcat(this.config.base, '/pots/:pot/withdraw', {pot});
+
+		const {data} = await axios.post<{
+			id: string;
+			name: string;
+			style: string;
+			balance: number;
+			currency: Currency;
+			created: string;
+			updated: string;
+			deleted: boolean;
+		}>(
+			url,
+			new URLSearchParams({
+				dedupe_id,
+				destination_account_id,
 				amount: amount.toString(),
 			}),
 			{headers: this.headers}
