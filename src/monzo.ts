@@ -69,8 +69,26 @@ export class MonzoAPI extends Configable {
 		const {data} = await axios.get<{
 			accounts: Array<{
 				id: string;
+				closed: boolean;
 				created: string;
 				description: string;
+				type: string;
+				currency: string;
+				country_code: string;
+				owners: Array<{
+					user_id: string;
+					preferred_name: string;
+					preferred_first_name: string;
+				}>;
+				account_number: string;
+				sort_code: string;
+				payment_details: {
+					locale_uk: {
+						account_number: string;
+						sort_code: string;
+					};
+				};
+				business_id?: string;
 			}>;
 		}>(url, {headers: this.headers});
 
@@ -102,11 +120,24 @@ export class MonzoAPI extends Configable {
 				id: string;
 				name: string;
 				style: string;
-				balance: string;
-				currency: Currency;
+				balance: number;
+				currency: string;
+				goal_amount: number;
+				type: string;
+				product_id: string;
+				current_account_id: string;
+				cover_image_url: string;
+				isa_wrapper: string;
+				round_up: boolean;
+				round_up_multiplier?: number;
+				is_tax_pot: boolean;
 				created: string;
 				updated: string;
 				deleted: boolean;
+				locked: boolean;
+				charity_id: string;
+				available_for_bills: boolean;
+				has_virtual_cards: boolean;
 			}>;
 		}>(url, {headers: this.headers});
 
