@@ -156,7 +156,7 @@ export class MonzoAPI extends Configable {
 	) {
 		const url = urlcat(this.config.base, '/pots/:pot/deposit', {pot});
 
-		const {data} = await axios.post<{
+		const {data} = await axios.put<{
 			id: string;
 			name: string;
 			style: string;
@@ -192,7 +192,7 @@ export class MonzoAPI extends Configable {
 	) {
 		const url = urlcat(this.config.base, '/pots/:pot/withdraw', {pot});
 
-		const {data} = await axios.post<{
+		const {data} = await axios.put<{
 			id: string;
 			name: string;
 			style: string;
