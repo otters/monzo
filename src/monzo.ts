@@ -1,7 +1,8 @@
 import axios from 'axios';
-import urlcat, {query} from 'urlcat';
+import urlcat from 'urlcat';
 import {Config, Configable} from './configable';
 import {Id, Models, AppCredentials, UserCredentials, Pagination, Hex} from './types';
+import {stringify as query} from 'qs';
 
 export class MonzoAPI extends Configable {
 	public readonly credentials;
@@ -217,9 +218,16 @@ export class MonzoAPI extends Configable {
 		const url = urlcat(this.config.base, '/feed');
 
 		// TODO: Figure out response type for this
-		const {data} = await axios.post<unknown>(url, query({params, url, account_id, type}), {
-			headers: this.headers,
-		});
+		const {data} = await axios.post<unknown>(
+			url,
+			query({
+				params,
+				url: feedUrl,
+				account_id,
+				type,
+			}),
+			{headers: this.headers}
+		);
 
 		return data;
 	}
