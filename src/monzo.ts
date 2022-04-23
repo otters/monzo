@@ -206,9 +206,9 @@ export class MonzoAPI extends Configable {
 			url: feedUrl,
 			...params
 		}: {
-			url: string;
 			title: string;
 			image_url: string;
+			url?: string;
 			body?: string;
 			background_color?: Hex;
 			title_color?: Hex;
