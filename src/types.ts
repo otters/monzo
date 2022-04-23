@@ -31,9 +31,14 @@ export type IdPrefixes = typeof ID_PREFIXES[number];
 export type Id<T extends IdPrefixes> = `${T}_${string}`;
 export type AnyId = Id<IdPrefixes>;
 
-export function getIdPrefix<T extends IdPrefixes>(value: Id<T>) {
-	const [id] = value.split('_');
-	return id as T;
+export function validateId<T extends IdPrefixes>(maybeId: string, prefix: T): maybeId is Id<T>;
+export function validateId(maybeId: string): maybeId is AnyId;
+export function validateId<T extends IdPrefixes>(maybeId: string, prefix?: T) {
+	if (prefix) {
+		return maybeId.startsWith(`${prefix}_`);
+	}
+
+	return ID_PREFIXES.some(prefix => maybeId.startsWith(`${prefix}_`));
 }
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -43,7 +48,7 @@ export namespace Models {
 		closed: boolean;
 		created: string;
 		description: string;
-		type: 'uk_retail' | 'uk_retail_plus' | 'uk_personal' | 'uk_business';
+		type: 'uk_retail' | 'uk_retail_joint' | 'uk_retail_plus' | 'uk_personal' | 'uk_business';
 		currency: Currency;
 		country_code: string;
 		owners: Array<{
