@@ -67,7 +67,7 @@ export class MonzoAPI extends Configable {
 		return data.accounts;
 	}
 
-	async balance(account_id: string) {
+	async balance(account_id: Id<'acc'>) {
 		const url = urlcat(this.config.base, '/balance', {
 			account_id,
 		});
@@ -77,7 +77,7 @@ export class MonzoAPI extends Configable {
 		return data;
 	}
 
-	async pots(current_account_id: string) {
+	async pots(current_account_id: Id<'acc'>) {
 		const url = urlcat(this.config.base, '/pots', {
 			current_account_id,
 		});
@@ -98,10 +98,12 @@ export class MonzoAPI extends Configable {
 		}: {
 			amount: number;
 			dedupe_id: string;
-			source_account_id: string;
+			source_account_id: Id<'acc'>;
 		}
 	) {
-		const url = urlcat(this.config.base, '/pots/:pot/deposit', {pot});
+		const url = urlcat(this.config.base, '/pots/:pot/deposit', {
+			pot,
+		});
 
 		const {data} = await axios.put<Models.Pot>(
 			url,
@@ -128,7 +130,9 @@ export class MonzoAPI extends Configable {
 			dedupe_id: string;
 		}
 	) {
-		const url = urlcat(this.config.base, '/pots/:pot/withdraw', {pot});
+		const url = urlcat(this.config.base, '/pots/:pot/withdraw', {
+			pot,
+		});
 
 		const {data} = await axios.put<Models.Pot>(
 			url,
@@ -139,6 +143,27 @@ export class MonzoAPI extends Configable {
 			}),
 			{headers: this.headers}
 		);
+
+		return data;
+	}
+
+	transaction<Metadata extends Models.TransactionMetadata>(
+		transaction_id: Id<'tx'>,
+		expand: 'merchant'
+	): Promise<Models.Transaction<Metadata>>;
+	transaction<Metadata extends Models.TransactionMetadata>(
+		transaction_id: Id<'tx'>
+	): Promise<Omit<Models.Transaction<Metadata>, 'merchant'>>;
+	async transaction<Metadata extends Models.TransactionMetadata>(
+		transaction_id: Id<'tx'>,
+		expand?: 'merchant'
+	) {
+		const url = urlcat(this.config.base, '/transactions/:transaction_id', {
+			transaction_id,
+			'expand[]': expand,
+		});
+
+		const {data} = await axios.get<Models.Transaction<Metadata>>(url, {headers: this.headers});
 
 		return data;
 	}

@@ -26,7 +26,7 @@ export interface Pagination {
 	before?: string;
 }
 
-export const ID_PREFIXES = ['acc', 'pot', 'user', 'oauth2client'] as const;
+export const ID_PREFIXES = ['acc', 'pot', 'user', 'oauth2client', 'tx', 'grp', 'merch'] as const;
 export type IdPrefixes = typeof ID_PREFIXES[number];
 export type Id<T extends IdPrefixes> = `${T}_${string}`;
 export type AnyId = Id<IdPrefixes>;
@@ -43,6 +43,43 @@ export function validateId<T extends IdPrefixes>(maybeId: string, prefix?: T) {
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Models {
+	export type TransactionMetadata = Record<string, string>;
+
+	export interface Transaction<Metadata extends TransactionMetadata = {}> {
+		account_balance: number;
+		amount: number;
+		created: string;
+		currency: string;
+		description: string;
+		id: string;
+		merchant: Merchant;
+		metadata: Metadata;
+		notes: string;
+		is_load: boolean;
+		settled: string;
+	}
+
+	export interface Merchant {
+		address: Address;
+		created: string;
+		group_id: string;
+		id: string;
+		logo: string;
+		emoji: string;
+		name: string;
+		category: string;
+	}
+
+	export interface Address {
+		address: string;
+		city: string;
+		country: string;
+		latitude: number;
+		longitude: number;
+		postcode: string;
+		region: string;
+	}
+
 	export interface Account {
 		id: string;
 		closed: boolean;
