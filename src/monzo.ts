@@ -2,7 +2,7 @@ import axios from 'axios';
 import urlcat from 'urlcat';
 import {Config, Configable} from './configable';
 import {AppCredentials, UserCredentials} from './credentials';
-import {Currency} from './types';
+import {Id, Models} from './types';
 
 export class MonzoAPI extends Configable {
 	public readonly credentials;
@@ -47,44 +47,22 @@ export class MonzoAPI extends Configable {
 		const url = urlcat(this.config.base, '/ping/whoami');
 
 		const {data} = await axios.get<{
-			authenticated: true;
-			client_id: string;
-			user_id: string;
+			authenticated: boolean;
+			client_id: Id<'oauth2client'>;
+			user_id: Id<'user'>;
 		}>(url, {headers: this.headers});
 
 		return data;
 	}
 
-	async accounts(account_type?: 'uk_retail' | 'uk_retail_joint') {
+	async accounts(account_type?: Models.Account['type']) {
 		const url = urlcat(this.config.base, '/accounts', {
 			account_type,
 		});
 
-		const {data} = await axios.get<{
-			accounts: Array<{
-				id: string;
-				closed: boolean;
-				created: string;
-				description: string;
-				type: string;
-				currency: Currency;
-				country_code: string;
-				owners: Array<{
-					user_id: string;
-					preferred_name: string;
-					preferred_first_name: string;
-				}>;
-				account_number: string;
-				sort_code: string;
-				payment_details: {
-					locale_uk: {
-						account_number: string;
-						sort_code: string;
-					};
-				};
-				business_id?: string;
-			}>;
-		}>(url, {headers: this.headers});
+		const {data} = await axios.get<{accounts: Models.Account[]}>(url, {
+			headers: this.headers,
+		});
 
 		return data.accounts;
 	}
@@ -94,16 +72,7 @@ export class MonzoAPI extends Configable {
 			account_id,
 		});
 
-		const {data} = await axios.get<{
-			balance: number;
-			total_balance: number;
-			balance_including_flexible_savings: number;
-			currency: Currency;
-			spend_today: number;
-			local_currency: '' | Currency;
-			local_exchange_rate: number;
-			local_spend: unknown[];
-		}>(url, {headers: this.headers});
+		const {data} = await axios.get<Models.Balance>(url, {headers: this.headers});
 
 		return data;
 	}
@@ -113,59 +82,28 @@ export class MonzoAPI extends Configable {
 			current_account_id,
 		});
 
-		const {data} = await axios.get<{
-			pots: Array<{
-				id: string;
-				name: string;
-				style: string;
-				balance: number;
-				currency: string;
-				goal_amount: number;
-				type: string;
-				product_id: string;
-				current_account_id: string;
-				cover_image_url: string;
-				isa_wrapper: string;
-				round_up: boolean;
-				round_up_multiplier?: number;
-				is_tax_pot: boolean;
-				created: string;
-				updated: string;
-				deleted: boolean;
-				locked: boolean;
-				charity_id: string;
-				available_for_bills: boolean;
-				has_virtual_cards: boolean;
-			}>;
-		}>(url, {headers: this.headers});
+		const {data} = await axios.get<{pots: Models.Pot[]}>(url, {
+			headers: this.headers,
+		});
 
 		return data.pots;
 	}
 
 	async depositIntoPot(
-		pot: string,
+		pot: Id<'pot'>,
 		{
+			amount,
 			dedupe_id,
 			source_account_id,
-			amount,
 		}: {
-			source_account_id: string;
 			amount: number;
 			dedupe_id: string;
+			source_account_id: string;
 		}
 	) {
 		const url = urlcat(this.config.base, '/pots/:pot/deposit', {pot});
 
-		const {data} = await axios.put<{
-			id: string;
-			name: string;
-			style: string;
-			balance: number;
-			currency: Currency;
-			created: string;
-			updated: string;
-			deleted: boolean;
-		}>(
+		const {data} = await axios.put<Models.Pot>(
 			url,
 			new URLSearchParams({
 				dedupe_id,
@@ -179,29 +117,20 @@ export class MonzoAPI extends Configable {
 	}
 
 	async withdrawFromPot(
-		pot: string,
+		pot: Id<'pot'>,
 		{
-			dedupe_id,
 			destination_account_id,
 			amount,
+			dedupe_id,
 		}: {
-			destination_account_id: string;
+			destination_account_id: Id<'acc'>;
 			amount: number;
 			dedupe_id: string;
 		}
 	) {
 		const url = urlcat(this.config.base, '/pots/:pot/withdraw', {pot});
 
-		const {data} = await axios.put<{
-			id: string;
-			name: string;
-			style: string;
-			balance: number;
-			currency: Currency;
-			created: string;
-			updated: string;
-			deleted: boolean;
-		}>(
+		const {data} = await axios.put<Models.Pot>(
 			url,
 			new URLSearchParams({
 				dedupe_id,

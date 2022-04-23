@@ -8,12 +8,7 @@ import {MonzoAPI} from './monzo';
 export class MonzoOAuthAPI extends Configable {
 	public readonly credentials;
 
-	private readonly pika = new Pika([
-		{
-			prefix: 'state',
-			secure: true,
-		},
-	]);
+	private readonly pika = new Pika([{prefix: 'state', secure: true}]);
 
 	constructor(credentials: AppCredentials, config?: Partial<Config>) {
 		super(config);
@@ -32,14 +27,7 @@ export class MonzoOAuthAPI extends Configable {
 			state: s,
 		});
 
-		if (state) {
-			return url;
-		}
-
-		return {
-			state: s,
-			url,
-		};
+		return state ? url : {state: s, url};
 	}
 
 	async exchangeAuthorizationCode(code: string) {
