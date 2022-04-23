@@ -217,8 +217,9 @@ export class MonzoAPI extends Configable {
 	) {
 		const url = urlcat(this.config.base, '/feed');
 
-		// TODO: Figure out response type for this
-		const {data} = await axios.post<unknown>(
+		// The response type is literally `{}`, so we should just
+		// return void in this method.
+		await axios.post<{}>(
 			url,
 			query({
 				params,
@@ -228,7 +229,5 @@ export class MonzoAPI extends Configable {
 			}),
 			{headers: this.headers}
 		);
-
-		return data;
 	}
 }
