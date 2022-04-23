@@ -2,8 +2,8 @@ import axios from 'axios';
 import Pika from 'pika-id';
 import urlcat from 'urlcat';
 import {Config, Configable} from './configable';
-import {AppCredentials, UserCredentials} from './credentials';
 import {MonzoAPI} from './monzo';
+import {AppCredentials, UserCredentials} from './types';
 
 export class MonzoOAuthAPI extends Configable {
 	public readonly credentials;

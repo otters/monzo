@@ -1,8 +1,7 @@
 import axios from 'axios';
-import urlcat from 'urlcat';
+import urlcat, {query} from 'urlcat';
 import {Config, Configable} from './configable';
-import {AppCredentials, UserCredentials} from './credentials';
-import {Id, Models} from './types';
+import {Id, Models, AppCredentials, UserCredentials, Pagination, Hex} from './types';
 
 export class MonzoAPI extends Configable {
 	public readonly credentials;
@@ -32,7 +31,7 @@ export class MonzoAPI extends Configable {
 
 		const {data} = await axios.post<UserCredentials>(
 			url,
-			new URLSearchParams({
+			query({
 				grant_type: 'refresh_token',
 				client_id: this.app.client_id,
 				client_secret: this.app.client_secret,
@@ -107,11 +106,7 @@ export class MonzoAPI extends Configable {
 
 		const {data} = await axios.put<Models.Pot>(
 			url,
-			new URLSearchParams({
-				dedupe_id,
-				source_account_id,
-				amount: amount.toString(),
-			}),
+			query({dedupe_id, source_account_id, amount: amount.toString()}),
 			{headers: this.headers}
 		);
 
@@ -136,11 +131,7 @@ export class MonzoAPI extends Configable {
 
 		const {data} = await axios.put<Models.Pot>(
 			url,
-			new URLSearchParams({
-				dedupe_id,
-				destination_account_id,
-				amount: amount.toString(),
-			}),
+			query({dedupe_id, destination_account_id, amount: amount.toString()}),
 			{headers: this.headers}
 		);
 
@@ -170,5 +161,66 @@ export class MonzoAPI extends Configable {
 		});
 
 		return data.transaction;
+	}
+
+	async transactions<Metadata extends Models.TransactionMetadata>(
+		account_id: Id<'acc'>,
+		pagination?: Pagination
+	) {
+		const url = urlcat(this.config.base, '/transactions', {
+			account_id,
+			...pagination,
+		});
+
+		const {data} = await axios.get<{transactions: Array<Models.Transaction<Metadata>>}>(url, {
+			headers: this.headers,
+		});
+
+		return data.transactions;
+	}
+
+	async annotateTransaction<M extends Models.TransactionMetadata>(
+		transaction_id: Id<'tx'>,
+		metadata: M
+	) {
+		const url = urlcat(this.config.base, '/transactions/:transaction_id', {
+			transaction_id,
+		});
+
+		// Omit notes because updating the `notes` key applies the value to the transaction's
+		// top-level notes property and not to `metadata`!
+		const {data} = await axios.patch<{transaction: Models.Transaction<Omit<M, 'notes'>>}>(
+			url,
+			query(metadata),
+			{headers: this.headers}
+		);
+
+		return data.transaction;
+	}
+
+	async createFeedItem(
+		account_id: Id<'acc'>,
+		type: 'basic',
+		{
+			url: feedUrl,
+			...params
+		}: {
+			url: string;
+			title: string;
+			image_url: string;
+			body?: string;
+			background_color?: Hex;
+			title_color?: Hex;
+			body_color?: Hex;
+		}
+	) {
+		const url = urlcat(this.config.base, '/feed');
+
+		// TODO: Figure out response type for this
+		const {data} = await axios.post<unknown>(url, query({params, url, account_id, type}), {
+			headers: this.headers,
+		});
+
+		return data;
 	}
 }

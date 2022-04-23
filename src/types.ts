@@ -26,6 +26,21 @@ export interface Pagination {
 	before?: string;
 }
 
+export interface AppCredentials {
+	client_id: Id<'oauth2client'>;
+	client_secret: string;
+	redirect_uri: string;
+}
+
+export interface UserCredentials {
+	access_token: string;
+	client_id: Id<'oauth2client'>;
+	expires_in: number;
+	refresh_token: string;
+	token_type: 'Bearer';
+	user_id: Id<'user'>;
+}
+
 export const ID_PREFIXES = [
 	'acc',
 	'pot',
@@ -36,6 +51,7 @@ export const ID_PREFIXES = [
 	'merch',
 	'business',
 ] as const;
+
 export type IdPrefixes = typeof ID_PREFIXES[number];
 export type Id<T extends IdPrefixes> = `${T}_${string}`;
 export type AnyId = Id<IdPrefixes>;
@@ -49,6 +65,8 @@ export function validateId<T extends IdPrefixes>(maybeId: string, prefix?: T) {
 
 	return ID_PREFIXES.some(prefix => maybeId.startsWith(`${prefix}_`));
 }
+
+export type Hex = `#${string}`;
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Models {
@@ -66,6 +84,7 @@ export namespace Models {
 		notes: string;
 		is_load: boolean;
 		settled: string;
+		category: string;
 	}
 
 	export interface ExpandedTransaction<Metadata extends TransactionMetadata = {}>
