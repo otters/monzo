@@ -150,10 +150,10 @@ export class MonzoAPI extends Configable {
 	transaction<Metadata extends Models.TransactionMetadata>(
 		transaction_id: Id<'tx'>,
 		expand: 'merchant'
-	): Promise<Models.Transaction<Metadata>>;
+	): Promise<Models.ExpandedTransaction<Metadata>>;
 	transaction<Metadata extends Models.TransactionMetadata>(
 		transaction_id: Id<'tx'>
-	): Promise<Models.ExpandedTransaction<Metadata>>;
+	): Promise<Models.Transaction<Metadata>>;
 	async transaction<Metadata extends Models.TransactionMetadata>(
 		transaction_id: Id<'tx'>,
 		expand?: 'merchant'
