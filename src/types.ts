@@ -26,16 +26,15 @@ export interface Pagination {
 	before?: string;
 }
 
-export type IdTypes = 'acc' | 'pot' | 'user' | 'oauth2client';
-export type Id<T extends IdTypes> = `${T}_${string}`;
-export type AnyId = Id<IdTypes>;
+export const ID_PREFIXES = ['acc', 'pot', 'user', 'oauth2client'] as const;
+export type IdPrefixes = typeof ID_PREFIXES[number];
+export type Id<T extends IdPrefixes> = `${T}_${string}`;
+export type AnyId = Id<IdPrefixes>;
 
-export function getIdType<T extends IdTypes>(value: Id<T>) {
+export function getIdPrefix<T extends IdPrefixes>(value: Id<T>) {
 	const [id] = value.split('_');
 	return id as T;
 }
-
-getIdType('pot_dasdsa');
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Models {
