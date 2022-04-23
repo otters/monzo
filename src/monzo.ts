@@ -153,7 +153,7 @@ export class MonzoAPI extends Configable {
 	): Promise<Models.Transaction<Metadata>>;
 	transaction<Metadata extends Models.TransactionMetadata>(
 		transaction_id: Id<'tx'>
-	): Promise<Omit<Models.Transaction<Metadata>, 'merchant'>>;
+	): Promise<Models.ExpandedTransaction<Metadata>>;
 	async transaction<Metadata extends Models.TransactionMetadata>(
 		transaction_id: Id<'tx'>,
 		expand?: 'merchant'
@@ -163,8 +163,12 @@ export class MonzoAPI extends Configable {
 			'expand[]': expand,
 		});
 
-		const {data} = await axios.get<Models.Transaction<Metadata>>(url, {headers: this.headers});
+		const {data} = await axios.get<{
+			transaction: Models.Transaction<Metadata> | Models.ExpandedTransaction<Metadata>;
+		}>(url, {
+			headers: this.headers,
+		});
 
-		return data;
+		return data.transaction;
 	}
 }

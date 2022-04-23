@@ -26,7 +26,16 @@ export interface Pagination {
 	before?: string;
 }
 
-export const ID_PREFIXES = ['acc', 'pot', 'user', 'oauth2client', 'tx', 'grp', 'merch'] as const;
+export const ID_PREFIXES = [
+	'acc',
+	'pot',
+	'user',
+	'oauth2client',
+	'tx',
+	'grp',
+	'merch',
+	'business',
+] as const;
 export type IdPrefixes = typeof ID_PREFIXES[number];
 export type Id<T extends IdPrefixes> = `${T}_${string}`;
 export type AnyId = Id<IdPrefixes>;
@@ -51,19 +60,24 @@ export namespace Models {
 		created: string;
 		currency: string;
 		description: string;
-		id: string;
-		merchant: Merchant;
+		id: Id<'tx'>;
+		merchant: Id<'merch'>;
 		metadata: Metadata;
 		notes: string;
 		is_load: boolean;
 		settled: string;
 	}
 
+	export interface ExpandedTransaction<Metadata extends TransactionMetadata = {}>
+		extends Omit<Transaction<Metadata>, 'merchant'> {
+		merchant: Merchant;
+	}
+
 	export interface Merchant {
 		address: Address;
 		created: string;
-		group_id: string;
-		id: string;
+		group_id: Id<'grp'>;
+		id: Id<'merch'>;
 		logo: string;
 		emoji: string;
 		name: string;
@@ -81,7 +95,7 @@ export namespace Models {
 	}
 
 	export interface Account {
-		id: string;
+		id: Id<'acc'>;
 		closed: boolean;
 		created: string;
 		description: string;
@@ -101,7 +115,7 @@ export namespace Models {
 				sort_code: string;
 			};
 		};
-		business_id?: string;
+		business_id?: Id<'business'>;
 	}
 
 	export interface Balance {
