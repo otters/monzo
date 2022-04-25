@@ -89,6 +89,19 @@ export function validateId<T extends IdPrefixes>(maybeId: string, prefix?: T) {
 	return ID_PREFIXES.some(prefix => maybeId.startsWith(`${prefix}_`));
 }
 
+export function assertId<T extends IdPrefixes>(
+	maybeId: string,
+	prefix: T
+): asserts maybeId is Id<T>;
+export function assertId(maybeId: string): asserts maybeId is AnyId;
+export function assertId<T extends IdPrefixes>(maybeId: string, prefix?: T) {
+	const result = prefix ? validateId(maybeId, prefix) : validateId(maybeId);
+
+	if (!result) {
+		throw new Error(`Invalid id: ${maybeId}`);
+	}
+}
+
 export function castId<T extends IdPrefixes>(maybeId: string, prefix: T) {
 	if (!validateId(maybeId, prefix)) {
 		throw new Error('Cannot cast a non-id string to an id.');
@@ -226,7 +239,7 @@ export namespace Models {
 		user_id: Id<'user'>;
 	}
 
-	export interface ExpandedTransaction<Metadata extends TransactionMetadata = {}>
+	export interface ExpandedTransaction<Metadata extends TransactionMetadata = TransactionMetadata>
 		extends Omit<Transaction<Metadata>, 'merchant'> {
 		merchant: Merchant | null;
 	}
@@ -379,7 +392,9 @@ export namespace Webhooks {
 		};
 
 		export type TransactionCreated = Payload<'transaction.created', Models.ExpandedTransaction>;
+		// TODO: Guessing the type of this to be `Models.ExpandedTransaction` — need to confirm
+		export type TransactionUpdated = Payload<'transaction.updated', Models.ExpandedTransaction>;
 	}
 
-	export type Payload = Payloads.TransactionCreated;
+	export type Payload = Payloads.TransactionCreated | Payloads.TransactionUpdated;
 }
