@@ -72,6 +72,7 @@ export const ID_PREFIXES = [
 	'inbndp2p',
 	'trip',
 	'receipt',
+	'webhook',
 ] as const;
 
 export type IdPrefixes = typeof ID_PREFIXES[number];
@@ -368,4 +369,31 @@ export namespace Models {
 		available_for_bills: boolean;
 		has_virtual_cards: boolean;
 	}
+}
+
+export namespace Webhooks {
+	export namespace Payloads {
+		type Payload<T extends string, D> = {
+			type: T;
+			data: D;
+		};
+
+		export type TransactionCreated = Payload<
+			'transaction.created',
+			{
+				account_id: Id<'acc'>;
+				amount: number;
+				created: string;
+				currency: string;
+				description: string;
+				id: Id<'tx'>;
+				category: string;
+				is_load: boolean;
+				settled: string;
+				merchant: Models.Merchant;
+			}
+		>;
+	}
+
+	export type Payload = Payloads.TransactionCreated;
 }

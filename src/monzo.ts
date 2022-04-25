@@ -317,4 +317,51 @@ export class MonzoAPI extends Configable {
 			headers: this.headers,
 		});
 	}
+
+	async registerWebhook<Account extends Id<'acc'>, Url extends string>(
+		account_id: Account,
+		webhookUrl: Url
+	) {
+		const url = urlcat(this.config.base, '/webhooks');
+
+		const {data} = await axios.post<{
+			webhook: {
+				account_id: Account;
+				id: Id<'webhook'>;
+				url: Url;
+			};
+		}>(url, query({account_id, url: webhookUrl}), {
+			headers: this.headers,
+		});
+
+		return data.webhook;
+	}
+
+	async listWebhooks<Account extends Id<'acc'>>(account_id: Account) {
+		const url = urlcat(this.config.base, '/webhooks', {
+			account_id,
+		});
+
+		const {data} = await axios.get<{
+			webhooks: Array<{
+				id: Id<'webhook'>;
+				account_id: Account;
+				url: string;
+			}>;
+		}>(url, {
+			headers: this.headers,
+		});
+
+		return data.webhooks;
+	}
+
+	async deleteWebhook(id: Id<'webhook'>) {
+		const url = urlcat(this.config.base, '/webhooks/:id', {
+			id,
+		});
+
+		await axios.delete<{}>(url, {
+			headers: this.headers,
+		});
+	}
 }
