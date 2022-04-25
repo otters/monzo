@@ -390,7 +390,7 @@ export namespace Webhooks {
 				category: string;
 				is_load: boolean;
 				settled: string;
-				merchant: Models.Merchant;
+				merchant: Models.Merchant | null;
 			}
 		>;
 	}
