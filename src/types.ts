@@ -59,6 +59,19 @@ export const ID_PREFIXES = [
 	'mcauthmsg',
 	'mclifecycle',
 	'mccard',
+	'tab',
+	'p2p',
+	'participant',
+	'attach',
+	'sub',
+	'potwdr',
+	'copdecision',
+	'series',
+	'p2p',
+	'billsplit',
+	'payreq',
+	'inbndp2p',
+	'trip',
 ] as const;
 
 export type IdPrefixes = typeof ID_PREFIXES[number];
@@ -73,6 +86,14 @@ export function validateId<T extends IdPrefixes>(maybeId: string, prefix?: T) {
 	}
 
 	return ID_PREFIXES.some(prefix => maybeId.startsWith(`${prefix}_`));
+}
+
+export function castId<T extends IdPrefixes>(maybeId: string, prefix: T) {
+	if (!validateId(maybeId, prefix)) {
+		throw new Error('Cannot cast a non-id string to an ID');
+	}
+
+	return maybeId;
 }
 
 export type Hex = `#${string}`;
@@ -91,14 +112,18 @@ export namespace Models {
 		can_be_made_subscription: boolean;
 		can_match_transactions_in_categorization: boolean;
 		can_split_the_bill: boolean;
-		categories: Categories | null;
+		/**
+		 * The categories this transaction belongs to.
+		 * Key = name of the category
+		 * Value = amount spent in this category from overall amount spent in this tx
+		 */
+		categories: Record<string, number> | null;
 		category: string;
 		counterparty: Counterparty;
 		created: string;
-		currency: string;
+		currency: Currency;
 		dedupe_id: string;
 		description: string;
-		// TODO: I've never seen this field from the API so cannot type it!
 		fees: Fees;
 		id: Id<'tx'>;
 		include_in_spending: boolean;
@@ -107,13 +132,19 @@ export namespace Models {
 		labels: string[] | null;
 		local_amount: number;
 		local_currency: string;
-		merchant: string | null;
+		merchant: Id<'merch'> | null;
 		metadata: Metadata;
 		notes: string;
 		originator: boolean;
-		parent_account_id: string;
-		// TODO: Identify other values for .scheme
-		scheme: 'uk_retail_pot' | 'payport_faster_payments' | 'mastercard';
+		// TODO: Unable to find usage of this field in the API
+		parent_account_id: '';
+		scheme:
+			| 'uk_retail_pot'
+			| 'payport_faster_payments'
+			| 'mastercard'
+			| 'p2p_payment'
+			| 'topup'
+			| '3dsecure';
 		settled: string;
 		updated: string;
 		user_id: Id<'user'> | '';
@@ -126,40 +157,20 @@ export namespace Models {
 		allowance_usage_explainer_text: string;
 		fee_amount: number;
 		fee_currency: string;
-		fee_summary: unknown;
+		fee_summary: null;
 		withdrawal_amount: number;
 		withdrawal_currency: string;
 	}
 
 	export interface Attachment {
 		created: string;
-		external_id: string;
+		external_id: Id<'tx'>;
 		file_type: string;
 		file_url: string;
-		id: string;
+		id: Id<'attach'>;
 		type: string;
 		url: string;
-		user_id: string;
-	}
-
-	export interface Categories {
-		[key: string]: number | undefined;
-
-		savings?: number;
-		entertainment?: number;
-		transfers?: number;
-		transport?: number;
-		eating_out?: number;
-		expenses?: number;
-		shopping?: number;
-		groceries?: number;
-		bills?: number;
-		general?: number;
-		income?: number;
-		holidays?: number;
-		cash?: number;
-		gifts?: number;
-		personal_care?: number;
+		user_id: Id<'user'>;
 	}
 
 	export interface Counterparty {
@@ -172,15 +183,16 @@ export namespace Models {
 		preferred_name?: string;
 	}
 
+	// TODO: I've never seen this field from the API so cannot type it!
 	// eslint-disable-next-line @typescript-eslint/no-empty-interface
 	export interface Fees {
 		//
 	}
 
 	export interface Tab {
-		created_by: string;
-		currency: string;
-		id: string;
+		created_by: Id<'user'>;
+		currency: Currency;
+		id: Id<'tab'>;
 		item_count: number;
 		left_participants: unknown[];
 		modified_at: string;
@@ -193,23 +205,23 @@ export namespace Models {
 
 	export interface Participant {
 		first_name: string;
-		id: string;
+		id: Id<'participant'>;
 		invited_at?: string;
-		invited_by?: string;
+		invited_by?: Id<'user'>;
 		name: string;
 		payment_status: string;
 		settle_amount: number;
-		settle_currency: string;
+		settle_currency: Currency;
 		status: string;
-		tab_id: string;
+		tab_id: Id<'tab'>;
 		total_amount: number;
-		total_currency: string;
-		user_id: string;
+		total_currency: Currency;
+		user_id: Id<'user'>;
 	}
 
 	export interface ExpandedTransaction<Metadata extends TransactionMetadata = {}>
 		extends Omit<Transaction<Metadata>, 'merchant'> {
-		merchant: Merchant;
+		merchant: Merchant | null;
 	}
 
 	export interface Merchant {
