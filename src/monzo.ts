@@ -305,7 +305,7 @@ export class MonzoAPI extends Configable {
 			headers: this.headers,
 		});
 
-		return data;
+		return data.receipt;
 	}
 
 	async deleteReceipt(external_id: string) {
