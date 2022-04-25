@@ -90,7 +90,7 @@ export function validateId<T extends IdPrefixes>(maybeId: string, prefix?: T) {
 
 export function castId<T extends IdPrefixes>(maybeId: string, prefix: T) {
 	if (!validateId(maybeId, prefix)) {
-		throw new Error('Cannot cast a non-id string to an ID');
+		throw new Error('Cannot cast a non-id string to an id.');
 	}
 
 	return maybeId;
@@ -148,7 +148,13 @@ export namespace Models {
 		settled: string;
 		updated: string;
 		user_id: Id<'user'> | '';
-		decline_reason: string | null;
+		decline_reason:
+			| 'INSUFFICIENT_FUNDS'
+			| 'CARD_INACTIVE'
+			| 'CARD_BLOCKED'
+			| 'INVALID_CVC'
+			| 'OTHER'
+			| null;
 		tab: Tab | null;
 	}
 
@@ -277,7 +283,10 @@ export namespace Models {
 		spend_today: number;
 		local_currency: '' | Currency;
 		local_exchange_rate: number;
-		local_spend: unknown[];
+		local_spend: Array<{
+			spend_today: number;
+			currency: Currency;
+		}>;
 	}
 
 	export interface Pot {
