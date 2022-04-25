@@ -378,21 +378,7 @@ export namespace Webhooks {
 			data: D;
 		};
 
-		export type TransactionCreated = Payload<
-			'transaction.created',
-			{
-				account_id: Id<'acc'>;
-				amount: number;
-				created: string;
-				currency: string;
-				description: string;
-				id: Id<'tx'>;
-				category: string;
-				is_load: boolean;
-				settled: string;
-				merchant: Models.Merchant | null;
-			}
-		>;
+		export type TransactionCreated = Payload<'transaction.created', Models.ExpandedTransaction>;
 	}
 
 	export type Payload = Payloads.TransactionCreated;
