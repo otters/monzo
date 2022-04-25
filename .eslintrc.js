@@ -15,6 +15,7 @@ module.exports = {
 		'@typescript-eslint/naming-convention': 'off',
 		'@typescript-eslint/ban-types': 'off',
 		'@typescript-eslint/indent': 'off',
+		'no-mixed-spaces-and-tabs': 'off',
 	},
 	ignorePatterns: ['dist', '*.js'],
 };

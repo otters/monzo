@@ -1,7 +1,7 @@
 import axios from 'axios';
 import urlcat from 'urlcat';
 import {Config, Configable} from './configable';
-import {Id, Models, AppCredentials, UserCredentials, Pagination, Hex} from './types';
+import {Id, Models, AppCredentials, UserCredentials, Pagination, Hex, Currency} from './types';
 import {stringify as query} from 'qs';
 
 export class MonzoAPI extends Configable {
@@ -226,5 +226,95 @@ export class MonzoAPI extends Configable {
 			}),
 			{headers: this.headers}
 		);
+	}
+
+	async uploadAttachment(file_name: string, file_type: string, content_length: number) {
+		const url = urlcat(this.config.base, '/attachment/upload');
+
+		const {data} = await axios.post<{
+			file_url: string;
+			upload_url: string;
+		}>(url, query({file_name, file_type, content_length}), {
+			headers: this.headers,
+		});
+
+		return data;
+	}
+
+	async registerAttachment(external_id: Id<'tx'>, file_url: string, file_type: string) {
+		const url = urlcat(this.config.base, '/attachment/register');
+
+		const {data} = await axios.post<{
+			attachment: {
+				id: Id<'attach'>;
+				user_id: Id<'user'>;
+				external_id: Id<'tx'>;
+				file_url: string;
+				file_type: string;
+				created: string;
+			};
+		}>(
+			url,
+			query({
+				external_id,
+				file_url,
+				file_type,
+			}),
+			{headers: this.headers}
+		);
+
+		return data.attachment;
+	}
+
+	async deregisterAttachment(attachment_id: Id<'attach'>) {
+		const url = urlcat(this.config.base, '/attachment/deregister');
+
+		await axios.post<{}>(url, query({id: attachment_id}), {
+			headers: this.headers,
+		});
+	}
+
+	async createReceipt(
+		transaction_id: Id<'tx'>,
+		receipt: {
+			items: Models.ReceiptItem[];
+			external_id: string;
+			total: number;
+			currency: Currency;
+		}
+	) {
+		const url = urlcat(this.config.base, '/transaction-receipts');
+
+		await axios.put<{}>(url, {transaction_id, ...receipt}, {headers: this.headers});
+	}
+
+	async retrieveReceipt<E extends string = string>(external_id: E) {
+		const url = urlcat(this.config.base, '/transaction-receipts', {
+			external_id,
+		});
+
+		const {data} = await axios.get<{
+			receipt: {
+				id: Id<'receipt'>;
+				external_id: E;
+				total: number;
+				currency: Currency;
+				items: Models.ReceiptItem[];
+			};
+		}>(url, {
+			headers: this.headers,
+		});
+
+		return data;
+	}
+
+	async deleteReceipt(external_id: string) {
+		const url = urlcat(this.config.base, '/transaction-receipts', {
+			external_id,
+		});
+
+		await axios.delete(url, {
+			headers: this.headers,
+		});
 	}
 }

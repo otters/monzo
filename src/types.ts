@@ -60,7 +60,6 @@ export const ID_PREFIXES = [
 	'mclifecycle',
 	'mccard',
 	'tab',
-	'p2p',
 	'participant',
 	'attach',
 	'sub',
@@ -72,6 +71,7 @@ export const ID_PREFIXES = [
 	'payreq',
 	'inbndp2p',
 	'trip',
+	'receipt',
 ] as const;
 
 export type IdPrefixes = typeof ID_PREFIXES[number];
@@ -131,7 +131,7 @@ export namespace Models {
 		is_load: boolean;
 		labels: string[] | null;
 		local_amount: number;
-		local_currency: string;
+		local_currency: Currency;
 		merchant: Id<'merch'> | null;
 		metadata: Metadata;
 		notes: string;
@@ -162,10 +162,10 @@ export namespace Models {
 		allowance_id: string;
 		allowance_usage_explainer_text: string;
 		fee_amount: number;
-		fee_currency: string;
+		fee_currency: Currency;
 		fee_summary: null;
 		withdrawal_amount: number;
-		withdrawal_currency: string;
+		withdrawal_currency: Currency;
 	}
 
 	export interface Attachment {
@@ -273,6 +273,60 @@ export namespace Models {
 			};
 		};
 		business_id?: Id<'business'>;
+	}
+
+	export interface ReceiptItem {
+		description: string;
+		quantity: number;
+		unit: string;
+		amount: number;
+		currency: Currency;
+		tax: number;
+		sub_items?: Array<Exclude<ReceiptItem, 'sub_items'>>;
+	}
+
+	export type ReceiptPayment =
+		| {
+				type: 'card';
+				bin: string;
+				last_four: string;
+				auth_code: string;
+				aid: string;
+				mid: string;
+				tid: string;
+				amount: number;
+				currency: Currency;
+		  }
+		| {
+				type: 'cash';
+				amount: number;
+				currency: Currency;
+		  }
+		| {
+				type: 'gift_card';
+				gift_card_type: string;
+				currency: Currency;
+		  };
+
+	export interface ReceiptMerchant {
+		name: string;
+		/**
+		 * Indicates if this merchant is an "online" merchant or brick and mortar.
+		 * true for Ecommerce merchants like Amazon, false for offline merchants like Pret or Starbucks
+		 */
+		online: boolean;
+		phone: string;
+		email: string;
+		store_name: string;
+		store_address: string;
+		store_postcode: string;
+	}
+
+	export interface ReceiptTax {
+		description: 'VAT';
+		amount: number;
+		currency: Currency;
+		tax_number?: string;
 	}
 
 	export interface Balance {
