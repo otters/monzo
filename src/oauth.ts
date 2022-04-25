@@ -8,7 +8,12 @@ import {AppCredentials, UserCredentials} from './types';
 export class MonzoOAuthAPI extends Configable {
 	public readonly credentials;
 
-	private readonly pika = new Pika([{prefix: 'state', secure: true}]);
+	private readonly pika = new Pika([
+		{
+			prefix: 'state',
+			secure: true,
+		},
+	]);
 
 	constructor(credentials: AppCredentials, config?: Partial<Config>) {
 		super(config);
@@ -32,8 +37,6 @@ export class MonzoOAuthAPI extends Configable {
 
 	async exchangeAuthorizationCode(code: string) {
 		const url = urlcat(this.config.base, '/oauth2/token');
-
-		console.log('bruh');
 
 		const {data} = await axios.post<UserCredentials>(
 			url,

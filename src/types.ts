@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-namespace */
+
 // Note, these are only guesses as to what is available in the API
 // as Monzo does not document it
 export type Currency =
@@ -50,6 +52,13 @@ export const ID_PREFIXES = [
 	'grp',
 	'merch',
 	'business',
+	'entryset',
+	'obextpayment',
+	'potdep',
+	'anonuser',
+	'mcauthmsg',
+	'mclifecycle',
+	'mccard',
 ] as const;
 
 export type IdPrefixes = typeof ID_PREFIXES[number];
@@ -68,23 +77,134 @@ export function validateId<T extends IdPrefixes>(maybeId: string, prefix?: T) {
 
 export type Hex = `#${string}`;
 
-// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Models {
 	export type TransactionMetadata = Record<string, string>;
 
-	export interface Transaction<Metadata extends TransactionMetadata = {}> {
-		account_balance: number;
+	export interface Transaction<Metadata extends TransactionMetadata = TransactionMetadata> {
+		account_id: Id<'acc'>;
 		amount: number;
+		amount_is_pending: boolean;
+		atm_fees_detailed: AtmFeesDetailed | null;
+		attachments: Attachment[] | null;
+		can_add_to_tab: boolean;
+		can_be_excluded_from_breakdown: boolean;
+		can_be_made_subscription: boolean;
+		can_match_transactions_in_categorization: boolean;
+		can_split_the_bill: boolean;
+		categories: Categories | null;
+		category: string;
+		counterparty: Counterparty;
 		created: string;
 		currency: string;
+		dedupe_id: string;
 		description: string;
+		// TODO: I've never seen this field from the API so cannot type it!
+		fees: Fees;
 		id: Id<'tx'>;
-		merchant: Id<'merch'>;
+		include_in_spending: boolean;
+		international: unknown;
+		is_load: boolean;
+		labels: string[] | null;
+		local_amount: number;
+		local_currency: string;
+		merchant: string | null;
 		metadata: Metadata;
 		notes: string;
-		is_load: boolean;
+		originator: boolean;
+		parent_account_id: string;
+		// TODO: Identify other values for .scheme
+		scheme: 'uk_retail_pot' | 'payport_faster_payments' | 'mastercard';
 		settled: string;
-		category: string;
+		updated: string;
+		user_id: Id<'user'> | '';
+		decline_reason: string | null;
+		tab: Tab | null;
+	}
+
+	export interface AtmFeesDetailed {
+		allowance_id: string;
+		allowance_usage_explainer_text: string;
+		fee_amount: number;
+		fee_currency: string;
+		fee_summary: unknown;
+		withdrawal_amount: number;
+		withdrawal_currency: string;
+	}
+
+	export interface Attachment {
+		created: string;
+		external_id: string;
+		file_type: string;
+		file_url: string;
+		id: string;
+		type: string;
+		url: string;
+		user_id: string;
+	}
+
+	export interface Categories {
+		[key: string]: number | undefined;
+
+		savings?: number;
+		entertainment?: number;
+		transfers?: number;
+		transport?: number;
+		eating_out?: number;
+		expenses?: number;
+		shopping?: number;
+		groceries?: number;
+		bills?: number;
+		general?: number;
+		income?: number;
+		holidays?: number;
+		cash?: number;
+		gifts?: number;
+		personal_care?: number;
+	}
+
+	export interface Counterparty {
+		account_number?: string;
+		name?: string;
+		sort_code?: string;
+		user_id?: Id<'user' | 'anonuser'>;
+		beneficiary_account_type?: string;
+		account_id?: Id<'acc'>;
+		preferred_name?: string;
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-empty-interface
+	export interface Fees {
+		//
+	}
+
+	export interface Tab {
+		created_by: string;
+		currency: string;
+		id: string;
+		item_count: number;
+		left_participants: unknown[];
+		modified_at: string;
+		name: string;
+		opened_at: string;
+		participants: Participant[];
+		status: string;
+		total: number;
+	}
+
+	export interface Participant {
+		first_name: string;
+		id: string;
+		invited_at?: string;
+		invited_by?: string;
+		name: string;
+		payment_status: string;
+		settle_amount: number;
+		settle_currency: string;
+		status: string;
+		tab_id: string;
+		total_amount: number;
+		total_currency: string;
+		user_id: string;
 	}
 
 	export interface ExpandedTransaction<Metadata extends TransactionMetadata = {}>

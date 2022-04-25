@@ -164,16 +164,13 @@ export class MonzoAPI extends Configable {
 		return data.transaction;
 	}
 
-	async transactions<Metadata extends Models.TransactionMetadata>(
-		account_id: Id<'acc'>,
-		pagination?: Pagination
-	) {
+	async transactions(account_id: Id<'acc'>, pagination?: Pagination) {
 		const url = urlcat(this.config.base, '/transactions', {
 			account_id,
 			...pagination,
 		});
 
-		const {data} = await axios.get<{transactions: Array<Models.Transaction<Metadata>>}>(url, {
+		const {data} = await axios.get<{transactions: Models.Transaction[]}>(url, {
 			headers: this.headers,
 		});
 
