@@ -1,9 +1,9 @@
 import {test} from 'uvu';
-import {MonzoOAuthAPI} from '../src';
 import * as assert from 'uvu/assert';
+import {MonzoOAuthAPI} from '../src';
 
 const monzo = new MonzoOAuthAPI({
-	client_id: 'id',
+	client_id: 'oauth2client_test',
 	client_secret: 'secret',
 	redirect_uri: 'https://example.com/oauth',
 });
@@ -13,7 +13,7 @@ test('It creates a valid authorization url', async () => {
 
 	assert.equal(
 		url,
-		'https://auth.monzo.com?client_id=id&redirect_uri=https%3A%2F%2Fexample.com%2Foauth&response_type=code&state=state'
+		'https://auth.monzo.com?client_id=oauth2client_test&redirect_uri=https%3A%2F%2Fexample.com%2Foauth&response_type=code&state=state',
 	);
 });
 

@@ -1,3 +1,3 @@
-export * from './monzo';
-export * from './oauth';
-export * from './types';
+export * from './monzo.ts';
+export * from './oauth.ts';
+export * from './types.ts';

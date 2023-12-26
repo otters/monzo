@@ -2,7 +2,7 @@
 
 Monzo API Wrapper for TypeScript
 
-Brief documentation is below, please consult Monzo's API documentation for more information.
+Brief documentation is below, please consult Monzo's API documentation for more information. Requires Node.js>=16.0.0
 
 ## Getting Started
 

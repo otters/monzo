@@ -1,4 +1,9 @@
+/* eslint-disable no-warning-comments */
 /* eslint-disable @typescript-eslint/no-namespace */
+
+export type Config = {
+	base: string;
+};
 
 // Note, these are only guesses as to what is available in the API
 // as Monzo does not document it
@@ -22,26 +27,26 @@ export type Currency =
 	| 'TRY'
 	| 'ZAR';
 
-export interface Pagination {
+export type Pagination = {
 	limit?: number;
 	since?: string;
 	before?: string;
-}
+};
 
-export interface AppCredentials {
+export type AppCredentials = {
 	client_id: Id<'oauth2client'>;
 	client_secret: string;
 	redirect_uri: string;
-}
+};
 
-export interface UserCredentials {
+export type UserCredentials = {
 	access_token: string;
 	client_id: Id<'oauth2client'>;
 	expires_in: number;
 	refresh_token: string;
 	token_type: 'Bearer';
 	user_id: Id<'user'>;
-}
+};
 
 export const ID_PREFIXES = [
 	'acc',
@@ -115,7 +120,7 @@ export type Hex = `#${string}`;
 export namespace Models {
 	export type TransactionMetadata = Record<string, string>;
 
-	export interface Transaction<Metadata extends TransactionMetadata = TransactionMetadata> {
+	export type Transaction<Metadata extends TransactionMetadata = TransactionMetadata> = {
 		account_id: Id<'acc'>;
 		amount: number;
 		amount_is_pending: boolean;
@@ -170,9 +175,9 @@ export namespace Models {
 			| 'OTHER'
 			| null;
 		tab: Tab | null;
-	}
+	};
 
-	export interface AtmFeesDetailed {
+	export type AtmFeesDetailed = {
 		allowance_id: string;
 		allowance_usage_explainer_text: string;
 		fee_amount: number;
@@ -180,9 +185,9 @@ export namespace Models {
 		fee_summary: null;
 		withdrawal_amount: number;
 		withdrawal_currency: Currency;
-	}
+	};
 
-	export interface Attachment {
+	export type Attachment = {
 		created: string;
 		external_id: Id<'tx'>;
 		file_type: string;
@@ -191,9 +196,9 @@ export namespace Models {
 		type: string;
 		url: string;
 		user_id: Id<'user'>;
-	}
+	};
 
-	export interface Counterparty {
+	export type Counterparty = {
 		account_number?: string;
 		name?: string;
 		sort_code?: string;
@@ -201,15 +206,15 @@ export namespace Models {
 		beneficiary_account_type?: string;
 		account_id?: Id<'acc'>;
 		preferred_name?: string;
-	}
+	};
 
 	// TODO: I've never seen this field from the API so cannot type it!
-	// eslint-disable-next-line @typescript-eslint/no-empty-interface
-	export interface Fees {
-		//
-	}
 
-	export interface Tab {
+	export type Fees = {
+		//
+	};
+
+	export type Tab = {
 		created_by: Id<'user'>;
 		currency: Currency;
 		id: Id<'tab'>;
@@ -221,9 +226,9 @@ export namespace Models {
 		participants: Participant[];
 		status: string;
 		total: number;
-	}
+	};
 
-	export interface Participant {
+	export type Participant = {
 		first_name: string;
 		id: Id<'participant'>;
 		invited_at?: string;
@@ -237,14 +242,13 @@ export namespace Models {
 		total_amount: number;
 		total_currency: Currency;
 		user_id: Id<'user'>;
-	}
+	};
 
-	export interface ExpandedTransaction<Metadata extends TransactionMetadata = TransactionMetadata>
-		extends Omit<Transaction<Metadata>, 'merchant'> {
+	export type ExpandedTransaction<Metadata extends TransactionMetadata = TransactionMetadata> = {
 		merchant: Merchant | null;
-	}
+	} & Omit<Transaction<Metadata>, 'merchant'>;
 
-	export interface Merchant {
+	export type Merchant = {
 		address: Address;
 		created: string;
 		group_id: Id<'grp'>;
@@ -253,9 +257,9 @@ export namespace Models {
 		emoji: string;
 		name: string;
 		category: string;
-	}
+	};
 
-	export interface Address {
+	export type Address = {
 		address: string;
 		city: string;
 		country: string;
@@ -263,9 +267,9 @@ export namespace Models {
 		longitude: number;
 		postcode: string;
 		region: string;
-	}
+	};
 
-	export interface Account {
+	export type Account = {
 		id: Id<'acc'>;
 		closed: boolean;
 		created: string;
@@ -287,9 +291,9 @@ export namespace Models {
 			};
 		};
 		business_id?: Id<'business'>;
-	}
+	};
 
-	export interface ReceiptItem {
+	export type ReceiptItem = {
 		description: string;
 		quantity: number;
 		unit: string;
@@ -297,7 +301,7 @@ export namespace Models {
 		currency: Currency;
 		tax: number;
 		sub_items?: Array<Exclude<ReceiptItem, 'sub_items'>>;
-	}
+	};
 
 	export type ReceiptPayment =
 		| {
@@ -322,7 +326,7 @@ export namespace Models {
 				currency: Currency;
 		  };
 
-	export interface ReceiptMerchant {
+	export type ReceiptMerchant = {
 		name: string;
 		/**
 		 * Indicates if this merchant is an "online" merchant or brick and mortar.
@@ -334,16 +338,16 @@ export namespace Models {
 		store_name: string;
 		store_address: string;
 		store_postcode: string;
-	}
+	};
 
-	export interface ReceiptTax {
+	export type ReceiptTax = {
 		description: 'VAT';
 		amount: number;
 		currency: Currency;
 		tax_number?: string;
-	}
+	};
 
-	export interface Balance {
+	export type Balance = {
 		balance: number;
 		total_balance: number;
 		balance_including_flexible_savings: number;
@@ -355,9 +359,9 @@ export namespace Models {
 			spend_today: number;
 			currency: Currency;
 		}>;
-	}
+	};
 
-	export interface Pot {
+	export type Pot = {
 		id: Id<'pot'>;
 		name: string;
 		style: string;
@@ -381,7 +385,7 @@ export namespace Models {
 		charity_id: string;
 		available_for_bills: boolean;
 		has_virtual_cards: boolean;
-	}
+	};
 }
 
 export namespace Webhooks {

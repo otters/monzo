@@ -1,14 +1,25 @@
 {
 	"compilerOptions": {
-		"module": "commonjs",
-		"target": "es6",
 		"sourceMap": true,
 		"esModuleInterop": true,
 		"outDir": "dist",
 		"declaration": true,
 		"declarationMap": true,
-		"moduleResolution": "node",
-		"strict": true
+		"moduleResolution": "bundler",
+		"module": "ESNext",
+		"target": "ESNext",
+		"strict": true,
+		"noEmit": true,
+		"useUnknownInCatchVariables": true,
+		"noImplicitOverride": true,
+		"noFallthroughCasesInSwitch": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"exactOptionalPropertyTypes": true,
+		"noImplicitReturns": true,
+		"noUncheckedIndexedAccess": true,
+		"allowImportingTsExtensions": true,
+		"verbatimModuleSyntax": true
 	},
 	"exclude": ["node_modules", "dist"]
 }

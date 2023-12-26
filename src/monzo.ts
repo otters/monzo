@@ -1,92 +1,96 @@
-import axios from 'axios';
-import urlcat from 'urlcat';
-import {Config, Configable} from './configable';
-import {Id, Models, AppCredentials, UserCredentials, Pagination, Hex, Currency} from './types';
+import {createHTTPClient} from 'alistair/http';
+import {pathcat} from 'pathcat';
 import {stringify as query} from 'qs';
+import type {
+	AppCredentials,
+	Config,
+	Currency,
+	Hex,
+	Id,
+	Models,
+	Pagination,
+	UserCredentials,
+} from './types.ts';
 
-export class MonzoAPI extends Configable {
+export class MonzoAPI {
 	public readonly credentials;
 
 	private readonly app;
+	private readonly api;
+	private readonly config: Config;
 
 	constructor(credentials: UserCredentials, app: AppCredentials, config?: Partial<Config>) {
-		super(config);
-
 		this.credentials = credentials;
 		this.app = app;
-	}
 
-	private get headers() {
-		return {
-			Authorization: `${this.credentials.token_type} ${this.credentials.access_token}`,
+		this.config = {
+			base: 'https://api.monzo.com',
+			...config,
 		};
+
+		this.api = createHTTPClient({
+			base: this.config.base,
+			lifecycle: {
+				before: async request => {
+					request.headers.set(
+						'Authorization',
+						`${this.credentials.token_type} ${this.credentials.access_token}`,
+					);
+
+					return request;
+				},
+			},
+		});
 	}
 
 	async logout() {
-		const url = urlcat(this.config.base, '/ping/logout');
-		await axios.post(url, undefined, {headers: this.headers});
+		await this.api.post('/ping/logout');
 	}
 
 	async refresh() {
-		const url = urlcat(this.config.base, '/oauth2/token');
-
-		const {data} = await axios.post<UserCredentials>(
-			url,
-			query({
+		return this.api.post<UserCredentials>('/oauth2/token', {
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded',
+			},
+			body: query({
 				grant_type: 'refresh_token',
 				client_id: this.app.client_id,
 				client_secret: this.app.client_secret,
 				refresh_token: this.credentials.refresh_token,
-			})
-		);
-
-		return data;
+			}),
+		});
 	}
 
 	async whoami() {
-		const url = urlcat(this.config.base, '/ping/whoami');
-
-		const {data} = await axios.get<{
+		return this.api.get<{
 			authenticated: boolean;
 			client_id: Id<'oauth2client'>;
 			user_id: Id<'user'>;
-		}>(url, {headers: this.headers});
-
-		return data;
+		}>('/ping/whoami');
 	}
 
-	async accounts(account_type?: Models.Account['type']) {
-		const url = urlcat(this.config.base, '/accounts', {
+	async getAccounts(account_type?: Models.Account['type']) {
+		const url = pathcat('/accounts', {
 			account_type,
 		});
 
-		const {data} = await axios.get<{accounts: Models.Account[]}>(url, {
-			headers: this.headers,
-		});
+		const {accounts} = await this.api.get<{accounts: Models.Account[]}>(url);
 
-		return data.accounts;
+		return accounts;
 	}
 
-	async balance(account_id: Id<'acc'>) {
-		const url = urlcat(this.config.base, '/balance', {
-			account_id,
-		});
-
-		const {data} = await axios.get<Models.Balance>(url, {headers: this.headers});
-
-		return data;
+	async getBalance(account_id: Id<'acc'>) {
+		return this.api.get<Models.Balance>(pathcat('/balance', {account_id}));
 	}
 
-	async pots(current_account_id: Id<'acc'>) {
-		const url = urlcat(this.config.base, '/pots', {
+	async getPots(current_account_id: Id<'acc'>) {
+		const url = pathcat('/pots', {
 			current_account_id,
 		});
 
-		const {data} = await axios.get<{pots: Models.Pot[]}>(url, {
-			headers: this.headers,
-		});
+		const {pots} = await this.api.get<{pots: Models.Pot[]}>(url);
 
-		return data.pots;
+		return pots;
 	}
 
 	async depositIntoPot(
@@ -99,19 +103,22 @@ export class MonzoAPI extends Configable {
 			amount: number;
 			dedupe_id: string;
 			source_account_id: Id<'acc'>;
-		}
+		},
 	) {
-		const url = urlcat(this.config.base, '/pots/:pot/deposit', {
-			pot,
+		const url = pathcat('/pots/:pot_id/deposit', {
+			pot_id: pot,
 		});
 
-		const {data} = await axios.put<Models.Pot>(
-			url,
-			query({dedupe_id, source_account_id, amount: amount.toString()}),
-			{headers: this.headers}
-		);
-
-		return data;
+		return this.api.put<Models.Pot>(url, {
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded',
+			},
+			body: query({
+				dedupe_id,
+				source_account_id,
+				amount: amount.toString(),
+			}),
+		});
 	}
 
 	async withdrawFromPot(
@@ -124,85 +131,81 @@ export class MonzoAPI extends Configable {
 			destination_account_id: Id<'acc'>;
 			amount: number;
 			dedupe_id: string;
-		}
+		},
 	) {
-		const url = urlcat(this.config.base, '/pots/:pot/withdraw', {
-			pot,
+		const url = pathcat('/pots/:pot_id/withdraw', {
+			pot_id: pot,
 		});
 
-		const {data} = await axios.put<Models.Pot>(
-			url,
-			query({dedupe_id, destination_account_id, amount: amount.toString()}),
-			{headers: this.headers}
-		);
-
-		return data;
+		return this.api.put<Models.Pot>(url, {
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded',
+			},
+			body: query({dedupe_id, destination_account_id, amount: amount.toString()}),
+		});
 	}
 
-	transaction<Metadata extends Models.TransactionMetadata>(
+	getTransaction<Metadata extends Models.TransactionMetadata>(
 		transaction_id: Id<'tx'>,
-		expand: 'merchant'
+		expand: 'merchant',
 	): Promise<Models.ExpandedTransaction<Metadata>>;
-	transaction<Metadata extends Models.TransactionMetadata>(
-		transaction_id: Id<'tx'>
-	): Promise<Models.Transaction<Metadata>>;
-	async transaction<Metadata extends Models.TransactionMetadata>(
+	getTransaction<Metadata extends Models.TransactionMetadata>(
 		transaction_id: Id<'tx'>,
-		expand?: 'merchant'
+	): Promise<Models.Transaction<Metadata>>;
+	async getTransaction<Metadata extends Models.TransactionMetadata>(
+		transaction_id: Id<'tx'>,
+		expand?: 'merchant',
 	) {
-		const url = urlcat(this.config.base, '/transactions/:transaction_id', {
+		const url = pathcat('/transactions/:transaction_id', {
 			transaction_id,
 			'expand[]': expand,
 		});
 
-		const {data} = await axios.get<{
+		const {transaction} = await this.api.get<{
 			transaction: Models.Transaction<Metadata> | Models.ExpandedTransaction<Metadata>;
-		}>(url, {
-			headers: this.headers,
-		});
+		}>(url);
 
-		return data.transaction;
+		return transaction;
 	}
 
-	async transactions(account_id: Id<'acc'>, pagination?: Pagination) {
-		const url = urlcat(this.config.base, '/transactions', {
+	async getTransactions(account_id: Id<'acc'>, pagination?: Pagination) {
+		const url = pathcat('/transactions', {
 			account_id,
 			...pagination,
 		});
 
-		const {data} = await axios.get<{transactions: Models.Transaction[]}>(url, {
-			headers: this.headers,
-		});
+		const {transactions} = await this.api.get<{transactions: Models.Transaction[]}>(url);
 
-		return data.transactions;
+		return transactions;
 	}
 
 	async annotateTransaction<M extends Models.TransactionMetadata>(
 		transaction_id: Id<'tx'>,
-		metadata: M
+		metadata: M,
 	) {
-		const url = urlcat(this.config.base, '/transactions/:transaction_id', {
+		const url = pathcat('/transactions/:transaction_id', {
 			transaction_id,
 		});
 
 		// Omit notes because updating the `notes` key applies the value to the transaction's
 		// top-level notes property and not to `metadata`!
-		const {data} = await axios.patch<{transaction: Models.Transaction<Omit<M, 'notes'>>}>(
+		const {transaction} = await this.api.patch<{transaction: Models.Transaction<Omit<M, 'notes'>>}>(
 			url,
-			query(metadata),
-			{headers: this.headers}
+			{
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded',
+				},
+				body: query(metadata),
+			},
 		);
 
-		return data.transaction;
+		return transaction;
 	}
 
 	async createFeedItem(
 		account_id: Id<'acc'>,
 		type: 'basic',
-		{
-			url: feedUrl,
-			...params
-		}: {
+		params: {
 			title: string;
 			image_url: string;
 			url?: string;
@@ -210,41 +213,39 @@ export class MonzoAPI extends Configable {
 			background_color?: Hex;
 			title_color?: Hex;
 			body_color?: Hex;
-		}
+		},
 	) {
-		const url = urlcat(this.config.base, '/feed');
+		const {url, ...rest} = params;
 
 		// The response type is literally `{}`, so we should just
 		// return void in this method.
-		await axios.post<{}>(
-			url,
-			query({
-				params,
-				url: feedUrl,
+		await this.api.post<{}>('/feed', {
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded',
+			},
+			body: query({
+				params: rest,
+				url,
 				account_id,
 				type,
 			}),
-			{headers: this.headers}
-		);
+		});
 	}
 
 	async uploadAttachment(file_name: string, file_type: string, content_length: number) {
-		const url = urlcat(this.config.base, '/attachment/upload');
-
-		const {data} = await axios.post<{
+		return this.api.post<{
 			file_url: string;
 			upload_url: string;
-		}>(url, query({file_name, file_type, content_length}), {
-			headers: this.headers,
+		}>('/attachment/upload', {
+			body: query({file_name, file_type, content_length}),
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded',
+			},
 		});
-
-		return data;
 	}
 
 	async registerAttachment(external_id: Id<'tx'>, file_url: string, file_type: string) {
-		const url = urlcat(this.config.base, '/attachment/register');
-
-		const {data} = await axios.post<{
+		const {attachment} = await this.api.post<{
 			attachment: {
 				id: Id<'attach'>;
 				user_id: Id<'user'>;
@@ -253,24 +254,26 @@ export class MonzoAPI extends Configable {
 				file_type: string;
 				created: string;
 			};
-		}>(
-			url,
-			query({
+		}>('/attachment/register', {
+			body: query({
 				external_id,
 				file_url,
 				file_type,
 			}),
-			{headers: this.headers}
-		);
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded',
+			},
+		});
 
-		return data.attachment;
+		return attachment;
 	}
 
 	async deregisterAttachment(attachment_id: Id<'attach'>) {
-		const url = urlcat(this.config.base, '/attachment/deregister');
-
-		await axios.post<{}>(url, query({id: attachment_id}), {
-			headers: this.headers,
+		await this.api.post<{}>('/attachment/deregister', {
+			body: query({id: attachment_id}),
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded',
+			},
 		});
 	}
 
@@ -281,19 +284,22 @@ export class MonzoAPI extends Configable {
 			external_id: string;
 			total: number;
 			currency: Currency;
-		}
+		},
 	) {
-		const url = urlcat(this.config.base, '/transaction-receipts');
-
-		await axios.put<{}>(url, {transaction_id, ...receipt}, {headers: this.headers});
+		await this.api.put<{}>('/transaction-receipts', {
+			body: {
+				transaction_id,
+				...receipt,
+			},
+		});
 	}
 
 	async retrieveReceipt<E extends string = string>(external_id: E) {
-		const url = urlcat(this.config.base, '/transaction-receipts', {
+		const url = pathcat('/transaction-receipts', {
 			external_id,
 		});
 
-		const {data} = await axios.get<{
+		const {receipt} = await this.api.get<{
 			receipt: {
 				id: Id<'receipt'>;
 				external_id: E;
@@ -301,67 +307,63 @@ export class MonzoAPI extends Configable {
 				currency: Currency;
 				items: Models.ReceiptItem[];
 			};
-		}>(url, {
-			headers: this.headers,
-		});
+		}>(url);
 
-		return data.receipt;
+		return receipt;
 	}
 
 	async deleteReceipt(external_id: string) {
-		const url = urlcat(this.config.base, '/transaction-receipts', {
+		const url = pathcat('/transaction-receipts', {
 			external_id,
 		});
 
-		await axios.delete(url, {
-			headers: this.headers,
-		});
+		await this.api.delete(url);
 	}
 
 	async registerWebhook<Account extends Id<'acc'>, Url extends string>(
 		account_id: Account,
-		webhookUrl: Url
+		webhookUrl: Url,
 	) {
-		const url = urlcat(this.config.base, '/webhooks');
-
-		const {data} = await axios.post<{
+		const {webhook} = await this.api.post<{
 			webhook: {
 				account_id: Account;
 				id: Id<'webhook'>;
 				url: Url;
 			};
-		}>(url, query({account_id, url: webhookUrl}), {
-			headers: this.headers,
+		}>('/webhooks', {
+			body: query({
+				account_id,
+				url: webhookUrl,
+			}),
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded',
+			},
 		});
 
-		return data.webhook;
+		return webhook;
 	}
 
 	async listWebhooks<Account extends Id<'acc'>>(account_id: Account) {
-		const url = urlcat(this.config.base, '/webhooks', {
+		const url = pathcat('/webhooks', {
 			account_id,
 		});
 
-		const {data} = await axios.get<{
+		const {webhooks} = await this.api.get<{
 			webhooks: Array<{
 				id: Id<'webhook'>;
 				account_id: Account;
 				url: string;
 			}>;
-		}>(url, {
-			headers: this.headers,
-		});
+		}>(url);
 
-		return data.webhooks;
+		return webhooks;
 	}
 
 	async deleteWebhook(id: Id<'webhook'>) {
-		const url = urlcat(this.config.base, '/webhooks/:id', {
+		const url = pathcat('/webhooks/:id', {
 			id,
 		});
 
-		await axios.delete<{}>(url, {
-			headers: this.headers,
-		});
+		await this.api.delete<{}>(url);
 	}
 }

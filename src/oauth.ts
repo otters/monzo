@@ -1,31 +1,34 @@
-import axios from 'axios';
-import Pika from 'pika-id';
-import urlcat from 'urlcat';
-import {Config, Configable} from './configable';
-import {MonzoAPI} from './monzo';
-import {AppCredentials, UserCredentials} from './types';
+import {createHTTPClient} from 'alistair/http';
+import {id} from 'alistair/id';
+import {pathcat} from 'pathcat';
+import {MonzoAPI} from './monzo.ts';
+import {type AppCredentials, type Config, type UserCredentials} from './types.ts';
 
-export class MonzoOAuthAPI extends Configable {
+export class MonzoOAuthAPI {
 	public readonly credentials;
 
-	private readonly pika = new Pika([
-		{
-			prefix: 'state',
-			secure: true,
-		},
-	]);
+	private readonly api;
+	private readonly config: Config;
 
 	constructor(credentials: AppCredentials, config?: Partial<Config>) {
-		super(config);
 		this.credentials = credentials;
+
+		this.config = {
+			base: 'https://api.monzo.com',
+			...config,
+		};
+
+		this.api = createHTTPClient({
+			base: this.config.base,
+		});
 	}
 
 	getOAuthURL(): {state: string; url: string};
 	getOAuthURL(state: string): string;
 	getOAuthURL(state?: string) {
-		const s = state ?? this.pika.gen('state');
+		const s = state ?? id(16, 'abcdef0123456789');
 
-		const url = urlcat('https://auth.monzo.com', {
+		const url = pathcat('https://auth.monzo.com', {
 			client_id: this.credentials.client_id,
 			redirect_uri: this.credentials.redirect_uri,
 			response_type: 'code',
@@ -36,19 +39,19 @@ export class MonzoOAuthAPI extends Configable {
 	}
 
 	async exchangeAuthorizationCode(code: string) {
-		const url = urlcat(this.config.base, '/oauth2/token');
-
-		const {data} = await axios.post<UserCredentials>(
-			url,
-			new URLSearchParams({
+		const creds = await this.api.post<UserCredentials>('/oauth2/token', {
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded',
+			},
+			body: new URLSearchParams({
 				grant_type: 'authorization_code',
 				client_id: this.credentials.client_id,
 				client_secret: this.credentials.client_secret,
 				redirect_uri: this.credentials.redirect_uri,
 				code,
-			})
-		);
+			}),
+		});
 
-		return new MonzoAPI(data, this.credentials, this.config);
+		return new MonzoAPI(creds, this.credentials, this.config);
 	}
 }
