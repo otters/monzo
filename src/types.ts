@@ -274,7 +274,13 @@ export namespace Models {
 		closed: boolean;
 		created: string;
 		description: string;
-		type: 'uk_retail' | 'uk_retail_joint' | 'uk_retail_plus' | 'uk_personal' | 'uk_business';
+		type:
+			| 'uk_retail'
+			| 'uk_retail_joint'
+			| 'uk_retail_plus'
+			| 'uk_personal'
+			| 'uk_business'
+			| 'uk_monzo_flex';
 		currency: Currency;
 		country_code: string;
 		owners: Array<{
@@ -282,9 +288,9 @@ export namespace Models {
 			preferred_name: string;
 			preferred_first_name: string;
 		}>;
-		account_number: string;
-		sort_code: string;
-		payment_details: {
+		account_number?: string;
+		sort_code?: string;
+		payment_details?: {
 			locale_uk: {
 				account_number: string;
 				sort_code: string;
