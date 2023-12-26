@@ -30,7 +30,7 @@
 		"url": "https://github.com/sponsors/alii"
 	},
 	"scripts": {
-		"build": "tsup src/index.ts --dts --format esm,cjs",
+		"build": "tsup src/index.ts --dts --format esm,cjs && attw --pack .",
 		"lint": "eslint ./src/**/*.ts",
 		"fix": "eslint ./src/**/*.ts --fix",
 		"test": "uvu -r tsm",
@@ -58,6 +58,7 @@
 		"urlcat": "^3.1.0"
 	},
 	"devDependencies": {
+		"@arethetypeswrong/cli": "^0.13.5",
 		"@types/qs": "^6.9.11",
 		"@typescript-eslint/eslint-plugin": "^6.16.0",
 		"@typescript-eslint/parser": "^6.16.0",
