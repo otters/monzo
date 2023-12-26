@@ -280,7 +280,8 @@ export namespace Models {
 			| 'uk_retail_plus'
 			| 'uk_personal'
 			| 'uk_business'
-			| 'uk_monzo_flex';
+			| 'uk_monzo_flex'
+			| 'uk_monzo_flex_backing_loan';
 		currency: Currency;
 		country_code: string;
 		owners: Array<{
