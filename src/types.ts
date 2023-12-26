@@ -80,7 +80,7 @@ export const ID_PREFIXES = [
 	'webhook',
 ] as const;
 
-export type IdPrefixes = typeof ID_PREFIXES[number];
+export type IdPrefixes = (typeof ID_PREFIXES)[number];
 export type Id<T extends IdPrefixes> = `${T}_${string}`;
 export type AnyId = Id<IdPrefixes>;
 
@@ -96,7 +96,7 @@ export function validateId<T extends IdPrefixes>(maybeId: string, prefix?: T) {
 
 export function assertId<T extends IdPrefixes>(
 	maybeId: string,
-	prefix: T
+	prefix: T,
 ): asserts maybeId is Id<T>;
 export function assertId(maybeId: string): asserts maybeId is AnyId;
 export function assertId<T extends IdPrefixes>(maybeId: string, prefix?: T) {

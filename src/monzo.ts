@@ -12,6 +12,9 @@ import type {
 	UserCredentials,
 } from './types.ts';
 
+/**
+ * The Monzo API client. This class is used to make requests to the Monzo API.
+ */
 export class MonzoAPI {
 	public readonly credentials;
 
@@ -19,8 +22,57 @@ export class MonzoAPI {
 	private readonly api;
 	private readonly config: Config;
 
-	constructor(credentials: UserCredentials, app: AppCredentials, config?: Partial<Config>) {
-		this.credentials = credentials;
+	/**
+	 * Construct a new instance of the Monzo API. If you want to refresh a token, you must
+	 * pass the `refresh_token` as well as the application's credentials to the .refresh() method directly.
+	 *
+	 * @param bearer The access token to use for requests.
+	 *
+	 * @example
+	 * ```ts
+	 * const api = new MonzoAPI('eyJhbGciOiJFUzI1NiIsI...');
+	 * ```
+	 */
+	constructor(bearer: string);
+
+	/**
+	 * Construct a new instance of the Monzo API with full credentials. This overload
+	 * exists so you can call the .refresh() method without having to pass the app credentials or refresh_token.
+	 *
+	 * @param credentials Full credentials to use for requests.
+	 * @param app The app credentials to use for refreshing tokens
+	 * @param config Optional configuration for the API (to specify base url, etc.)
+	 *
+	 * @example
+	 * ```ts
+	 * const credentials = {
+	 * 	access_token: 'eyJhbGciOiJFUzI1NiIsI...',
+	 * 	refresh_token: '...',
+	 * 	// ...
+	 * };
+	 * const api = new MonzoAPI();
+	 * ```
+	 */
+	constructor(
+		credentials: Pick<UserCredentials, 'access_token' | 'refresh_token'> &
+			Partial<Pick<UserCredentials, 'token_type'>>,
+		app?: AppCredentials,
+		config?: Partial<Config>,
+	);
+
+	constructor(
+		credentialsOrBearer:
+			| (Pick<UserCredentials, 'access_token' | 'refresh_token'> &
+					Partial<Pick<UserCredentials, 'token_type'>>)
+			| string,
+		app?: AppCredentials,
+		config?: Partial<Config>,
+	) {
+		this.credentials =
+			typeof credentialsOrBearer === 'object'
+				? {token_type: 'Bearer', ...credentialsOrBearer}
+				: {token_type: 'Bearer', access_token: credentialsOrBearer};
+
 		this.app = app;
 
 		this.config = {
@@ -43,11 +95,52 @@ export class MonzoAPI {
 		});
 	}
 
+	/**
+	 * Calls the logout endpoint. This will immediately invalidate the access token.
+	 * Once invalidated, the user must go through the authentication process again. You will not be able to refresh the access token.
+	 */
 	async logout() {
 		await this.api.post('/ping/logout');
 	}
 
+	/**
+	 * Refreshes the access token. This will invalidate the current access token and return a new one.
+	 * You'll have to reinstantiate the API client with the new token.
+	 *
+	 * You must pass the full user credentials and app credentials to the constructor, otherwise this method will throw.
+	 *
+	 * @returns The new credentials to use for requests.
+	 *
+	 * @example
+	 * ```ts
+	 * const app: AppCredentials = {
+	 * 	client_id: 'oauth2client_00001abc...',
+	 * 	client_secret: '...',
+	 * 	redirect_uri: '...',
+	 * }
+	 *
+	 * const current = new MonzoAPI(
+	 * 	{
+	 * 		access_token: '...',
+	 * 		refresh_token: '...',
+	 * 	},
+	 * 	app,
+	 * );
+	 * const creds = await current.refresh();
+	 * const refreshed = new MonzoAPI(creds, app);
+	 * ```
+	 */
 	async refresh() {
+		if (
+			typeof this.credentials === 'string' ||
+			!('refresh_token' in this.credentials) ||
+			!this.app
+		) {
+			throw new Error(
+				'No app or user credentials provided. You must provide the full constructor arguments to use .refresh()',
+			);
+		}
+
 		return this.api.post<UserCredentials>('/oauth2/token', {
 			headers: {
 				'Content-Type': 'application/x-www-form-urlencoded',
@@ -61,6 +154,10 @@ export class MonzoAPI {
 		});
 	}
 
+	/**
+	 * Gets information about the authenticated user.
+	 * @returns Information about the authenticated user.
+	 */
 	async whoami() {
 		return this.api.get<{
 			authenticated: boolean;
