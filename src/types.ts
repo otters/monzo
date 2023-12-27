@@ -281,7 +281,8 @@ export namespace Models {
 			| 'uk_personal'
 			| 'uk_business'
 			| 'uk_monzo_flex'
-			| 'uk_monzo_flex_backing_loan';
+			| 'uk_monzo_flex_backing_loan'
+			| 'uk_rewards';
 		currency: Currency;
 		country_code: string;
 		owners: Array<{
@@ -292,6 +293,12 @@ export namespace Models {
 		account_number?: string;
 		sort_code?: string;
 		payment_details?: {
+			iban: {
+				unformatted: string;
+				formatted: string;
+				usage_description: string;
+				usage_description_web: string;
+			};
 			locale_uk: {
 				account_number: string;
 				sort_code: string;
